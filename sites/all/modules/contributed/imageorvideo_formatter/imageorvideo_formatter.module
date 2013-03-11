@@ -1,0 +1,135 @@
+<?php
+/**
+ * @file
+ * Main module file for imageorvideo_formatter module.
+ */
+
+/**
+ * Implements hook_field_formatter_info().
+ */
+function imageorvideo_formatter_field_formatter_info() {
+  return array(
+    'imageorvideo_formatter_imageorvideo' => array(
+      'label'       => t('Image or video'),
+      'field types' => array('image', 'file'),
+
+      'settings'    => array(
+        'image_style_image' => 'thumbnail',
+        'image_style_video' => 'thumbnail',
+      ),
+    ),
+  );
+}
+
+/**
+ * Implements hook_field_formatter_settings_form().
+ */
+function imageorvideo_formatter_field_formatter_settings_form(
+    $field, $instance, $view_mode, $form, &$form_state
+  ) {
+  $styles = image_style_options(FALSE);
+  $element = array();
+  $display = $instance['display'][$view_mode];
+
+  $element['image_style_image'] = array(
+    '#type'           => 'select',
+    '#title'          => t('Style for images'),
+    '#description'    => t('The image style used if this field contains an image.'),
+    '#default_value'  => $display['settings']['image_style_image'],
+    '#options'        => $styles,
+  );
+  $element['image_style_video'] = array(
+    '#type'           => 'select',
+    '#title'          => t('Style for videos'),
+    '#description'    => t('The image style used if this field contains a video.'),
+    '#default_value'  => $display['settings']['image_style_video'],
+    '#options'        => $styles,
+  );
+
+  return $element;
+}
+
+/**
+ * Implements hook_field_formatter_settings_summary().
+ */
+function imageorvideo_formatter_field_formatter_settings_summary(
+  $field, $instance, $view_mode
+  ) {
+  $display = $instance['display'][$view_mode];
+
+  return t(
+    'Use the %image style for images and the %video style for videos.',
+    array(
+      '%image'  => $display['settings']['image_style_image'],
+      '%video'  => $display['settings']['image_style_video'],
+    )
+  );
+}
+
+/**
+ * Implements hook_field_formatter_view().
+ */
+function imageorvideo_formatter_field_formatter_view(
+  $entity_type, $entity, $field, $instance, $langcode, $items, $display
+) {
+  $elements = array();
+
+  foreach ($items as $item) {
+    $wrapper = file_stream_wrapper_get_instance_by_uri($item['uri']);
+
+    // Filemime will either be image/something or video/something, so grab the
+    // part before the slash to determine if it's an image or a video we're
+    // working with here.
+    list($type, $crap) = explode('/', $item['filemime']);
+
+    // Use either the image_style_image or image_style_video style depending on
+    // whether we're dealing with an image or a video here.
+    $thumb_style = $display['settings']['image_style_' . $type];
+
+    // If this is a video, we need to call the getLocalThumbnailPath() method in
+    // order to display a thumbnail, whereas if it's an image, it's just the
+    // path directly to the image that is used for the thumbnail.
+    $thumb_path = $type == 'video' ?
+      $wrapper->getLocalThumbnailPath() :
+      $item['uri'];
+
+    // If this is a video, we need to explicitly set the width and height. We
+    // are just hard-coding them here as there doesn't appear to be a way of
+    // grabbing predefined resolutions from the YouTube video.
+    $rel_suffix = $type == 'video' ? ';height=480;width=640' : '';
+
+    $path = file_create_url($item['uri']);
+
+    // On videos, the path is what would appear in the web browser if we watched
+    // the video, but this has watch?v=12345 which is not a URL format suitable
+    // for embedding. We need to convert the URL to a format that shadowbox can
+    // use.
+    if ($type == 'video') {
+      $path = str_replace('watch?', '', $path);
+      $path = str_replace('v=', 'v/', $path);
+    }
+
+    $thumb = array(
+      '#theme' => 'image_style',
+      '#style_name' => $thumb_style,
+      '#path' => $thumb_path,
+    );
+
+    $element = array(
+      '#theme'    => 'link',
+      '#text'     => render($thumb),
+      '#path'     => $path,
+      '#options'  => array(
+        'attributes'  => array(
+          // Make sure that the shadowbox group name is unique.
+          'rel' => 'shadowbox[' . $field['field_name'] . '_' . $field['id'] . ']' . $rel_suffix,
+        ),
+        'html'  => TRUE,
+      ),
+    );
+
+    $elements[] = $element;
+  }
+
+  return $elements;
+}

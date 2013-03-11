@@ -1,0 +1,13 @@
+name = Image or Video field formatter
+description = Provides a field formatter for fields that can show either images or videos
+package = Other
+core = 7.x
+dependencies[] = file
+dependencies[] = image
+
+; Information added by drupal.org packaging script on 2012-09-19
+version = "7.x-1.0"
+core = "7.x"
+project = "imageorvideo_formatter"
+datestamp = "1348064627"
+
