@@ -74,6 +74,19 @@ body {
     border: 1px solid #E1E1E1;
 }
 
+#page .view-caregories .views-row {
+    background: url("/itlatest/themes/itlatest/images/main-bg2.png") repeat scroll 0 0 transparent;
+    border: 1px solid #E1E1E1;
+    min-height: 50px;
+    height: auto;
+    margin-top: 10px;
+    text-align: center;
+    font-size: 22px;
+    list-style: none;
+    width: 178px;
+    margin-left: 12px;
+}
+
 #page .views-row .views-field-title {
     font-size: 24px;
     font-weight: bolder;
@@ -108,6 +121,7 @@ body {
     text-align: center;
     font-size: 22px;
     list-style: none;
+    
 }
 
 #page .content .menu li a {
@@ -178,4 +192,12 @@ body {
 
 #page #breadcrumb {
     display: none;
+}
+
+#page .region-footer-second {
+    padding-left: 10%;
+}
+
+#page .block-powered-by {
+    padding-left: 50%;
 }
