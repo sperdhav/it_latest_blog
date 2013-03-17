@@ -1,0 +1,7 @@
+<?php
+/**
+ * @file
+ * Code for the Drupal core feature.
+ */
+
+include_once 'feature_drupal_core.features.inc';
